@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart'; // ✨ 1. Import the share_plus package
 
 import '../models/chat_message.dart';
 import '../services/gemini_service.dart';
 import '../services/chat_history_service.dart';
-import 'expert_selection_screen.dart'; // This should be correct now
+import 'expert_selection_screen.dart';
 import 'conversation_list_screen.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -44,6 +45,29 @@ class _ChatScreenState extends State<ChatScreen> {
       builder: (context) => ConversationListScreen(expertName: widget.expert.name),
     ));
   }
+
+  // ✨ 2. Add the _exportChat method
+  void _exportChat() {
+    if (_currentMessages.isEmpty) {
+      // Optional: Show a snackbar or do nothing if there's no chat to export
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("There are no messages to export.")),
+      );
+      return;
+    }
+
+    // Format the chat messages into a readable string
+    final String formattedChat = _currentMessages.map((msg) {
+      final author = msg.role == 'user' ? 'You' : widget.expert.name;
+      return '$author: ${msg.text}';
+    }).join('\n\n');
+
+    final subject = 'Chat with ${widget.expert.name}';
+
+    // Use the share_plus package to open the share dialog
+    Share.share(formattedChat, subject: subject);
+  }
+
 
   void _speak(String text) async {
     await _flutterTts.setLanguage("en-US");
@@ -109,6 +133,13 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.blueGrey[900],
         foregroundColor: Colors.white,
         actions: [
+          // ✨ 3. Add the Export Chat IconButton
+          IconButton(
+            icon: const Icon(Icons.share),
+            tooltip: 'Export or Share Chat',
+            // Disable the button if the current chat is empty
+            onPressed: _currentMessages.isNotEmpty ? _exportChat : null,
+          ),
           IconButton(
             icon: const Icon(Icons.history_edu_outlined),
             tooltip: 'View Conversation History',
@@ -164,12 +195,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    // ✨ THIS IS THE FIX ✨
-                    // This forces the typed text to be black, making it visible.
                     style: const TextStyle(color: Colors.black),
                     decoration: InputDecoration(
                       hintText: 'Ask ${widget.expert.name}...',
-                      // You can also make the hint text darker if you want
                       hintStyle: const TextStyle(color: Colors.black54),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
                       filled: true,
