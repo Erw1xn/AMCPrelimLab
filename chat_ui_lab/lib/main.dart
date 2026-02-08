@@ -1,5 +1,3 @@
-// lib/main.dart
-
 import 'package:flutter/material.dart';
 import 'package:chat_ui_lab/screens/expert_selection_screen.dart';
 
@@ -7,7 +5,6 @@ void main() {
   runApp(const MyApp());
 }
 
-// ✨ 1. Convert MyApp to a StatefulWidget to manage theme state.
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 

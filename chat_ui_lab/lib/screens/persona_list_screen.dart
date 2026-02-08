@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'persona_edit_screen.dart';
-import 'persona_model.dart';
-import 'persona_service.dart';
+import '../models/persona_model.dart';
+import '../services/persona_service.dart';
 
 class PersonaListScreen extends StatefulWidget {
   const PersonaListScreen({super.key});

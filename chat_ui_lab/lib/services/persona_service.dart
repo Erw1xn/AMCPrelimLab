@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'persona_model.dart';
+import '../models/persona_model.dart';
 
 class PersonaService {
   static const _personasKey = 'personas';

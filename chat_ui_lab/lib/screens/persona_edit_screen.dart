@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import 'persona_model.dart';
+import '../models/persona_model.dart';
 
 class PersonaEditScreen extends StatefulWidget {
   final Persona? persona;
