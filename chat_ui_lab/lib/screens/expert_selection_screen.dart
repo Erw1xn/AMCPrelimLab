@@ -1,17 +1,13 @@
-// lib/screens/expert_selection_screen.dart
-
 import 'package:flutter/material.dart';
-import 'chat_screen.dart'; // Make sure this path is correct for your project structure
+import 'chat_screen.dart';
 
-// The Expert class defines the data structure for each persona.
+// The Expert model remains the same.
 class Expert {
   final String name;
   final String description;
   final IconData icon;
   final String emoji;
-  final String systemPrompt;
-
-  const Expert({
+  final String systemPrompt;  const Expert({
     required this.name,
     required this.description,
     required this.icon,
@@ -20,7 +16,7 @@ class Expert {
   });
 }
 
-// This list holds the initial set of experts.
+// The initial list of experts remains the same.
 List<Expert> initialExperts = [
   Expert(
     name: 'Plant Expert',
@@ -79,21 +75,23 @@ List<Expert> initialExperts = [
   ),
 ];
 
-// The screen is a StatefulWidget because its content (the list of experts) can change.
 class ExpertSelectionScreen extends StatefulWidget {
-  const ExpertSelectionScreen({super.key});
+  // ✨ 1. Add a field to accept the theme toggling function.
+  final VoidCallback toggleTheme;
+
+  const ExpertSelectionScreen({
+    super.key,
+    required this.toggleTheme, // ✨ 2. Make it a required parameter in the constructor.
+  });
 
   @override
   State<ExpertSelectionScreen> createState() => _ExpertSelectionScreenState();
 }
 
 class _ExpertSelectionScreenState extends State<ExpertSelectionScreen> {
-  // The list of experts is now a state variable, initialized with the starting experts.
   final List<Expert> _experts = List.from(initialExperts);
 
-  // This function now opens a dialog to get user input for the new expert.
   void _addNewExpert() async {
-    // We 'await' for the dialog to close and see if it returned a new expert.
     final newExpert = await showDialog<Expert>(
       context: context,
       builder: (BuildContext context) {
@@ -101,15 +99,11 @@ class _ExpertSelectionScreenState extends State<ExpertSelectionScreen> {
       },
     );
 
-    // If the user created an expert (i.e., didn't cancel), newExpert will not be null.
     if (newExpert != null) {
-      // Calling setState() triggers a rebuild of the widget, which updates
-      // the UI to show the newly added expert in the GridView.
       setState(() {
         _experts.add(newExpert);
       });
 
-      // A SnackBar provides visual feedback that the action was successful.
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('"${newExpert.name}" has been added!'),
@@ -121,15 +115,34 @@ class _ExpertSelectionScreenState extends State<ExpertSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ✨ Use the Card's theme color, which will adapt to light/dark mode.
+    final cardColor = Theme.of(context).cardColor;
+    // ✨ Use the theme's primary text color.
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
+    // ✨ Use a secondary text color from the theme.
+    final secondaryTextColor = Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7);
+
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Choose an Expert'),
-        backgroundColor: Colors.blueGrey[900],
+        // ⛔ Removed hardcoded backgroundColor to allow the theme to control it.
         actions: [
+          // ✨ 3. Add the theme toggle button.
+          IconButton(
+            icon: Icon(
+              // ✨ 4. The icon changes based on the current brightness (light/dark).
+              Theme.of(context).brightness == Brightness.dark
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+            ),
+            tooltip: 'Toggle Theme',
+            onPressed: widget.toggleTheme, // ✨ 5. Call the function passed from MyApp.
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             tooltip: 'Create New Persona',
-            onPressed: _addNewExpert, // The button now calls the updated function.
+            onPressed: _addNewExpert,
           ),
         ],
       ),
@@ -146,7 +159,8 @@ class _ExpertSelectionScreenState extends State<ExpertSelectionScreen> {
           final expert = _experts[index];
           return Card(
             elevation: 4.0,
-            color: Colors.blueGrey[700],
+            // ⛔ Removed hardcoded color, it now uses the theme's cardColor.
+            // color: Colors.blueGrey[700],
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
@@ -161,20 +175,23 @@ class _ExpertSelectionScreenState extends State<ExpertSelectionScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(expert.icon, size: 48, color: Colors.white70),
+                    // ✨ Using the theme's secondary text color for the icon.
+                    Icon(expert.icon, size: 48, color: secondaryTextColor),
                     const SizedBox(height: 12),
                     Text(
                       expert.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
-                          color: Colors.white),
+                          // ✨ Using the theme's primary text color.
+                          color: textColor),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       expert.description,
-                      style: const TextStyle(color: Colors.white70, fontSize: 12),
+                      // ✨ Using the theme's secondary text color.
+                      style: TextStyle(color: secondaryTextColor, fontSize: 12),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -188,7 +205,8 @@ class _ExpertSelectionScreenState extends State<ExpertSelectionScreen> {
   }
 }
 
-// A new StatefulWidget to manage the state of the input form within the dialog.
+// The _AddExpertDialog widget remains the same as it uses standard
+// AlertDialog and TextFormField widgets that adapt to the theme automatically.
 class _AddExpertDialog extends StatefulWidget {
   const _AddExpertDialog();
 
@@ -211,18 +229,14 @@ class _AddExpertDialogState extends State<_AddExpertDialog> {
   }
 
   void _createExpert() {
-    // Validate the form. If it's valid, create the expert and close the dialog.
     if (_formKey.currentState!.validate()) {
       final newExpert = Expert(
         name: _nameController.text,
         description: _descriptionController.text,
         systemPrompt: _systemPromptController.text,
-        // Using default values for icon and emoji for simplicity.
-        // You could add fields for these in the dialog as well.
         icon: Icons.add_reaction,
         emoji: '✨',
       );
-      // Pass the newly created expert back to the calling screen.
       Navigator.of(context).pop(newExpert);
     }
   }
@@ -231,7 +245,6 @@ class _AddExpertDialogState extends State<_AddExpertDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Create New Persona'),
-      // Use a SingleChildScrollView to prevent overflow if the keyboard appears.
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -272,7 +285,7 @@ class _AddExpertDialogState extends State<_AddExpertDialog> {
                   labelText: 'System Prompt',
                   hintText: 'e.g., You are a helpful history expert...',
                 ),
-                maxLines: 5, // Allow more space for the system prompt
+                maxLines: 5,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a system prompt';
@@ -288,7 +301,6 @@ class _AddExpertDialogState extends State<_AddExpertDialog> {
         TextButton(
           child: const Text('Cancel'),
           onPressed: () {
-            // Close the dialog without returning any data.
             Navigator.of(context).pop();
           },
         ),
@@ -300,4 +312,3 @@ class _AddExpertDialogState extends State<_AddExpertDialog> {
     );
   }
 }
-
