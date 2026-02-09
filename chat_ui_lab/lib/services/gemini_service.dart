@@ -5,7 +5,7 @@ import '../models/chat_message.dart';
 
 class GeminiService {
   // IMPORTANT: Remember to replace this with your actual, secured API key.
-  static const String apiKey = '';
+  static const String apiKey = 'AIzaSyB0oLkJ1G4z13yFBo1Skjpvfb8jbmO9nFU';
   static const String apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 

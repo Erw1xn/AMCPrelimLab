@@ -1,14 +1,16 @@
+// File: lib/screens/chat_screen.dart
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:share_plus/share_plus.dart'; // ✨ 1. Import the share_plus package
-
+import 'package:share_plus/share_plus.dart';
+import 'package:intl/intl.dart';
 import '../models/chat_message.dart';
 import '../services/gemini_service.dart';
 import '../services/chat_history_service.dart';
 import 'expert_selection_screen.dart';
 import 'conversation_list_screen.dart';
+import '../widgets/chat_message_widget.dart'; // ✨ 2. Import the new message widget
 
 class ChatScreen extends StatefulWidget {
   final Expert expert;
@@ -46,25 +48,23 @@ class _ChatScreenState extends State<ChatScreen> {
     ));
   }
 
-  // ✨ 2. Add the _exportChat method
   void _exportChat() {
     if (_currentMessages.isEmpty) {
-      // Optional: Show a snackbar or do nothing if there's no chat to export
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("There are no messages to export.")),
       );
       return;
     }
 
-    // Format the chat messages into a readable string
+    // ✨ 3. Update export to include timestamps for a more useful log
     final String formattedChat = _currentMessages.map((msg) {
       final author = msg.role == 'user' ? 'You' : widget.expert.name;
-      return '$author: ${msg.text}';
+      // Format the timestamp for the exported text
+      final String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(msg.timestamp);
+      return '[$formattedDate] $author: ${msg.text}';
     }).join('\n\n');
 
     final subject = 'Chat with ${widget.expert.name}';
-
-    // Use the share_plus package to open the share dialog
     Share.share(formattedChat, subject: subject);
   }
 
@@ -133,11 +133,9 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.blueGrey[900],
         foregroundColor: Colors.white,
         actions: [
-          // ✨ 3. Add the Export Chat IconButton
           IconButton(
             icon: const Icon(Icons.share),
             tooltip: 'Export or Share Chat',
-            // Disable the button if the current chat is empty
             onPressed: _currentMessages.isNotEmpty ? _exportChat : null,
           ),
           IconButton(
@@ -154,35 +152,15 @@ class _ChatScreenState extends State<ChatScreen> {
               padding: const EdgeInsets.all(8.0),
               reverse: true,
               itemCount: _currentMessages.length,
+              // ✨ 4. THIS IS THE MAIN CHANGE
+              // The old, complex itemBuilder is replaced with a single, clean widget call.
+              // This makes the code much easier to read and automatically adds the timestamp display.
               itemBuilder: (context, index) {
                 final message = _currentMessages[_currentMessages.length - 1 - index];
-                final isUser = message.role == 'user';
-                return Align(
-                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: isUser ? Colors.blue : Colors.grey[700],
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            message.text,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        if (!isUser)
-                          IconButton(
-                            icon: const Icon(Icons.volume_up, color: Colors.white70, size: 20),
-                            onPressed: () => _speak(message.text),
-                          ),
-                      ],
-                    ),
-                  ),
+                return ChatMessageWidget(
+                  message: message,
+                  // Pass the _speak function to the widget so the speaker icon works
+                  onSpeak: () => _speak(message.text),
                 );
               },
             ),
